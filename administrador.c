@@ -62,6 +62,36 @@ void cadastrarUsuario(const char* arquivoNome) {
     fclose(arquivo);
 }
 
+void CadastraInvestidor() {
+    FILE *arquivo;
+    char cpf[12], senha[50];
+
+    arquivo = fopen("usuarios.txt", "a");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    do {
+        printf("Digite o CPF (somente numeros): ");
+        scanf("%11s", cpf);
+
+        if (!validarCPF(cpf)) {
+            printf("Apenas numeros sao permitidos no CPF.\n");
+        } else if (verificarCadastro(cpf, "usuarios.txt")) {
+            printf("CPF ja cadastrado. Tente outro CPF.\n");
+        }
+    } while (!validarCPF(cpf) || verificarCadastro(cpf, "usuarios.txt"));
+
+    printf("Digite a senha: ");
+    scanf("%s", senha);
+
+    fprintf(arquivo, "CPF: %s  SENHA: %s\n", cpf, senha);
+    printf("Investidor cadastrado com sucesso!\n");
+
+    fclose(arquivo);
+}
+
 int login() {
     char cpf[12], senha[50], cpfArquivo[12], senhaArquivo[50];
 
@@ -111,13 +141,13 @@ void menuAdministrador() {
 
     while (1) {
         printf("\nMenu de Administrador:\n");
-        printf("1. Cadastrar Novo Cliente\n");
+        printf("1. Cadastrar Investidor\n");
         printf("2. Sair\n");
         printf("Escolha uma opcao: ");
         scanf("%d", &opcao);
 
         if (opcao == 1) {
-            cadastrarUsuario("clientes.txt");
+            CadastraInvestidor();
         } else if (opcao == 2) {
             printf("Saindo...\n");
             break;
@@ -127,7 +157,7 @@ void menuAdministrador() {
     }
 }
 
-int main() {
+int menu() {
     int opcao;
 
     while (1) {
