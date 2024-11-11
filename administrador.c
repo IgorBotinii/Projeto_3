@@ -14,11 +14,11 @@ int validarCPF(char cpf[]) {
 }
 
 // Função para verificar se o CPF já está cadastrado
-int verificarCadastro(char cpf[]) {
+int verificarCadastro(char cpf[], const char* arquivoNome) {
     FILE *arquivo;
     char cpfArquivo[12], senha[50];
 
-    arquivo = fopen("administradores.txt", "r");
+    arquivo = fopen(arquivoNome, "r");
     if (arquivo == NULL) {
         return 0; // Se o arquivo não existir ou não puder ser aberto, considera como não cadastrado
     }
@@ -33,6 +33,46 @@ int verificarCadastro(char cpf[]) {
 
     fclose(arquivo);
     return 0; // CPF não encontrado
+}
+
+// Função para cadastro de usuários (administradores ou clientes)
+void cadastrarUsuario(const char* arquivoNome) {
+    FILE *arquivo;
+    char cpf[12], senha[50];
+
+    // Abre o arquivo administradores.txt ou clientes.txt em modo de append (acrescentar)
+    arquivo = fopen(arquivoNome, "a");
+
+    // Verifica se o arquivo foi aberto corretamente
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    // Solicita o CPF do usuário e valida
+    do {
+        printf("Digite o CPF (somente números): ");
+        scanf("%11s", cpf);  // Limita a leitura a 11 caracteres
+
+        if (!validarCPF(cpf)) {
+            printf("Apenas números são permitidos no CPF.\n");
+        } else if (verificarCadastro(cpf, arquivoNome)) {
+            printf("CPF já cadastrado. Tente outro CPF.\n");
+        }
+    } while (!validarCPF(cpf) || verificarCadastro(cpf, arquivoNome));
+
+    // Solicita a senha do usuário
+    printf("Digite a senha: ");
+    scanf("%s", senha);
+
+    // Grava o CPF e a senha no arquivo
+    fprintf(arquivo, "%s %s\n", cpf, senha);
+
+    // Confirma o cadastro
+    printf("Cadastro realizado com sucesso!\n");
+
+    // Fecha o arquivo
+    fclose(arquivo);
 }
 
 // Função para login
@@ -56,7 +96,7 @@ int login() {
         }
 
         // Verifica se o CPF está cadastrado
-        if (verificarCadastro(cpf) == 0) {
+        if (verificarCadastro(cpf, "administradores.txt") == 0) {
             printf("CPF não encontrado.\n");
             continue; // Pede para digitar novamente
         }
@@ -85,6 +125,30 @@ int login() {
     }
 }
 
+void menuAdministrador() {
+    int opcao;
+
+    // Exibe o menu de administrador
+    while (1) {
+        printf("\nMenu de Administrador:\n");
+        printf("1. Cadastrar Novo Cliente\n");
+        printf("2. Sair\n");
+        printf("Escolha uma opção: ");
+        scanf("%d", &opcao);
+
+        if (opcao == 1) {
+            // Cadastrar novo cliente
+            cadastrarUsuario("clientes.txt");
+        } else if (opcao == 2) {
+            // Sair
+            printf("Saindo...\n");
+            break;
+        } else {
+            printf("Digite uma opção válida.\n");
+        }
+    }
+}
+
 int main() {
     int opcao;
 
@@ -101,48 +165,15 @@ int main() {
             // Tenta fazer o login
             if (login()) {
                 printf("Acesso concedido!\n");
+                menuAdministrador();  // Chama o menu de administrador após o login
             } else {
                 printf("Falha no login.\n");
             }
             break; // Sai do loop após o login ou falha
         } else if (opcao == 2) {
-            // Cadastro de novo usuário
-            FILE *arquivo;
-            char cpf[12], senha[50];
-
-            // Abre o arquivo administradores.txt em modo de append (acrescentar)
-            arquivo = fopen("administradores.txt", "a");
-
-            // Verifica se o arquivo foi aberto corretamente
-            if (arquivo == NULL) {
-                printf("Erro ao abrir o arquivo.\n");
-                return 1;
-            }
-
-            // Solicita o CPF do usuário e valida
-            do {
-                printf("Digite o CPF (somente números): ");
-                scanf("%11s", cpf);  // Limita a leitura a 11 caracteres
-
-                if (!validarCPF(cpf)) {
-                    printf("Apenas números são permitidos no CPF.\n");
-                } else if (verificarCadastro(cpf)) {
-                    printf("CPF já cadastrado. Tente outro CPF.\n");
-                }
-            } while (!validarCPF(cpf) || verificarCadastro(cpf));
-
-            // Solicita a senha do usuário
-            printf("Digite a senha: ");
-            scanf("%s", senha);
-
-            // Grava o CPF e a senha no arquivo
-            fprintf(arquivo, "%s %s\n", cpf, senha);
-
-            // Confirma o cadastro
-            printf("Cadastro realizado com sucesso!\n");
-
-            // Fecha o arquivo
-            fclose(arquivo);
+            // Cadastro de novo administrador
+            cadastrarUsuario("administradores.txt");
+            menuAdministrador();  // Chama o menu de administrador após o cadastro
             break; // Sai do loop após o cadastro
         } else {
             printf("Digite uma opção válida.\n");
