@@ -1,6 +1,6 @@
 #include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>c
 #include <string.h>
 #include <time.h>
 
@@ -882,6 +882,7 @@ int main() {
            "sair): ");
     scanf("%d", &opcao);
     getchar();
+    printf("\n");
 
     if (opcao == 0) {
       printf("Saindo do sistema.\n");
@@ -892,8 +893,9 @@ int main() {
     if (opcao == 1) {
       // Login
       while (1) {
-        printf(
-            "Digite o CPF para login (somente numeros) (ou 0 para cancelar): ");
+        printf(" 1 - Entrar como Cliente\n"
+                 "\n 2 - Entrar como ADM\n");
+        printf("\nDigite a opcao desejada: ");
         fgets(cpf, sizeof(cpf), stdin);
         cpf[strcspn(cpf, "\n")] = '\0';
 
