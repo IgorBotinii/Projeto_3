@@ -126,7 +126,7 @@ int menu() {
         else if (opcao == 2) {
             // Cadastro de novo usuário
             while (1) {
-                printf("Digite o CPF (somente numeros) do usuário que deseja cadastrar: ");
+                printf("Digite o CPF (somente numeros) do usuario que deseja cadastrar: ");
                 fgets(cpf, sizeof(cpf), stdin);
                 cpf[strcspn(cpf, "\n")] = '\0';
 
