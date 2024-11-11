@@ -3,105 +3,87 @@
 #include <string.h>
 #include <ctype.h>
 
-// Função para verificar se o CPF contém apenas números
 int validarCPF(char cpf[]) {
     for (int i = 0; i < strlen(cpf); i++) {
         if (!isdigit(cpf[i])) {
-            return 0; // Se encontrar um caractere não numérico, retorna falso
+            return 0;
         }
     }
-    return 1; // Se todos os caracteres forem numéricos, retorna verdadeiro
+    return 1;
 }
 
-// Função para verificar se o CPF já está cadastrado
 int verificarCadastro(char cpf[], const char* arquivoNome) {
     FILE *arquivo;
     char cpfArquivo[12], senha[50];
 
     arquivo = fopen(arquivoNome, "r");
     if (arquivo == NULL) {
-        return 0; // Se o arquivo não existir ou não puder ser aberto, considera como não cadastrado
+        return 0;
     }
 
-    // Percorre o arquivo verificando se o CPF já está cadastrado
     while (fscanf(arquivo, "%s %s", cpfArquivo, senha) != EOF) {
         if (strcmp(cpf, cpfArquivo) == 0) {
             fclose(arquivo);
-            return 1; // CPF já cadastrado
+            return 1;
         }
     }
 
     fclose(arquivo);
-    return 0; // CPF não encontrado
+    return 0;
 }
 
-// Função para cadastro de usuários (administradores ou clientes)
 void cadastrarUsuario(const char* arquivoNome) {
     FILE *arquivo;
     char cpf[12], senha[50];
 
-    // Abre o arquivo administradores.txt ou clientes.txt em modo de append (acrescentar)
     arquivo = fopen(arquivoNome, "a");
-
-    // Verifica se o arquivo foi aberto corretamente
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
     }
 
-    // Solicita o CPF do usuário e valida
     do {
-        printf("Digite o CPF (somente números): ");
-        scanf("%11s", cpf);  // Limita a leitura a 11 caracteres
+        printf("Digite o CPF (somente numeros): ");
+        scanf("%11s", cpf);
 
         if (!validarCPF(cpf)) {
-            printf("Apenas números são permitidos no CPF.\n");
+            printf("Apenas numeros sao permitidos no CPF.\n");
         } else if (verificarCadastro(cpf, arquivoNome)) {
-            printf("CPF já cadastrado. Tente outro CPF.\n");
+            printf("CPF ja cadastrado. Tente outro CPF.\n");
         }
     } while (!validarCPF(cpf) || verificarCadastro(cpf, arquivoNome));
 
-    // Solicita a senha do usuário
     printf("Digite a senha: ");
     scanf("%s", senha);
 
-    // Grava o CPF e a senha no arquivo
     fprintf(arquivo, "%s %s\n", cpf, senha);
-
-    // Confirma o cadastro
     printf("Cadastro realizado com sucesso!\n");
 
-    // Fecha o arquivo
     fclose(arquivo);
 }
 
-// Função para login
 int login() {
     char cpf[12], senha[50], cpfArquivo[12], senhaArquivo[50];
 
     while (1) {
         printf("Digite o CPF (ou 0 para sair): ");
-        scanf("%11s", cpf);  // Limita a leitura a 11 caracteres
+        scanf("%11s", cpf);
 
-        // Se o usuário digitar "0", sai do login
         if (strcmp(cpf, "0") == 0) {
             printf("Saindo do login...\n");
             return 0;
         }
 
-        // Verifica se o CPF é válido
         if (!validarCPF(cpf)) {
-            printf("Apenas números são permitidos no CPF.\n");
-            continue; // Pede para digitar novamente
+            printf("Apenas numeros sao permitidos no CPF.\n");
+            continue;
         }
 
-        // Verifica se o CPF está cadastrado
         if (verificarCadastro(cpf, "administradores.txt") == 0) {
-            printf("CPF não encontrado.\n");
-            continue; // Pede para digitar novamente
+            printf("CPF nao encontrado.\n");
+            continue;
         }
 
-        // Solicita a senha
         printf("Digite a senha: ");
         scanf("%s", senha);
 
@@ -111,12 +93,11 @@ int login() {
             return 0;
         }
 
-        // Verifica se a combinação CPF e senha existe
         while (fscanf(arquivo, "%s %s", cpfArquivo, senhaArquivo) != EOF) {
             if (strcmp(cpf, cpfArquivo) == 0 && strcmp(senha, senhaArquivo) == 0) {
                 printf("Login bem-sucedido!\n");
                 fclose(arquivo);
-                return 1; // Login realizado com sucesso
+                return 1;
             }
         }
 
@@ -128,23 +109,20 @@ int login() {
 void menuAdministrador() {
     int opcao;
 
-    // Exibe o menu de administrador
     while (1) {
         printf("\nMenu de Administrador:\n");
         printf("1. Cadastrar Novo Cliente\n");
         printf("2. Sair\n");
-        printf("Escolha uma opção: ");
+        printf("Escolha uma opcao: ");
         scanf("%d", &opcao);
 
         if (opcao == 1) {
-            // Cadastrar novo cliente
             cadastrarUsuario("clientes.txt");
         } else if (opcao == 2) {
-            // Sair
             printf("Saindo...\n");
             break;
         } else {
-            printf("Digite uma opção válida.\n");
+            printf("Digite uma opcao valida.\n");
         }
     }
 }
@@ -152,31 +130,28 @@ void menuAdministrador() {
 int main() {
     int opcao;
 
-    // Loop até o usuário escolher uma opção válida
     while (1) {
-        printf("Bem-vindo à Central de Administradores do Grupo FEInance\n\n");
-        printf("Escolha uma opção:\n");
+        printf("Bem-vindo a Central de Administradores do Grupo FEInance\n\n");
+        printf("Escolha uma opcao:\n");
         printf("1. Fazer Login\n");
         printf("2. Cadastrar-se\n");
-        printf("Digite a opção (1 ou 2): ");
+        printf("Digite a opcao (1 ou 2): ");
         scanf("%d", &opcao);
 
         if (opcao == 1) {
-            // Tenta fazer o login
             if (login()) {
                 printf("Acesso concedido!\n");
-                menuAdministrador();  // Chama o menu de administrador após o login
+                menuAdministrador();
             } else {
                 printf("Falha no login.\n");
             }
-            break; // Sai do loop após o login ou falha
+            break;
         } else if (opcao == 2) {
-            // Cadastro de novo administrador
             cadastrarUsuario("administradores.txt");
-            menuAdministrador();  // Chama o menu de administrador após o cadastro
-            break; // Sai do loop após o cadastro
+            menuAdministrador();
+            break;
         } else {
-            printf("Digite uma opção válida.\n");
+            printf("Digite uma opcao valida.\n");
         }
     }
 
