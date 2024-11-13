@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
+
 int validarCPF(char cpf[]) {
     for (int i = 0; i < strlen(cpf); i++) {
         if (!isdigit(cpf[i])) {
@@ -11,6 +12,7 @@ int validarCPF(char cpf[]) {
     }
     return 1;
 }
+
 
 int verificarCadastro(char cpf[], const char* arquivoNome) {
     FILE *arquivo;
@@ -21,16 +23,18 @@ int verificarCadastro(char cpf[], const char* arquivoNome) {
         return 0;
     }
 
-    while (fscanf(arquivo, "%s %s", cpfArquivo, senha) != EOF) {
+
+    while (fscanf(arquivo, "CPF: %s SENHA: %s", cpfArquivo, senha) != EOF) {
         if (strcmp(cpf, cpfArquivo) == 0) {
             fclose(arquivo);
-            return 1;
+            return 1; // CPF encontrado
         }
     }
 
     fclose(arquivo);
-    return 0;
+    return 0; // CPF não encontrado
 }
+
 
 void cadastrarUsuario(const char* arquivoNome) {
     FILE *arquivo;
@@ -44,7 +48,10 @@ void cadastrarUsuario(const char* arquivoNome) {
 
     do {
         printf("Digite o CPF (somente numeros): ");
-        scanf("%11s", cpf);
+        if (scanf("%11s", cpf) != 1) {
+            printf("Erro na entrada do CPF.\n");
+            return;
+        }
 
         if (!validarCPF(cpf)) {
             printf("Apenas numeros sao permitidos no CPF.\n");
@@ -54,9 +61,13 @@ void cadastrarUsuario(const char* arquivoNome) {
     } while (!validarCPF(cpf) || verificarCadastro(cpf, arquivoNome));
 
     printf("Digite a senha: ");
-    scanf("%s", senha);
+    if (scanf("%s", senha) != 1) {
+        printf("Erro na entrada da senha.\n");
+        fclose(arquivo);
+        return;
+    }
 
-    fprintf(arquivo, "%s %s\n", cpf, senha);
+    fprintf(arquivo, "CPF: %s SENHA: %s\n", cpf, senha);
     printf("Cadastro realizado com sucesso!\n");
 
     fclose(arquivo);
@@ -74,7 +85,10 @@ void CadastraInvestidor() {
 
     do {
         printf("Digite o CPF (somente numeros): ");
-        scanf("%11s", cpf);
+        if (scanf("%11s", cpf) != 1) {
+            printf("Erro na entrada do CPF.\n");
+            return;
+        }
 
         if (!validarCPF(cpf)) {
             printf("Apenas numeros sao permitidos no CPF.\n");
@@ -84,7 +98,11 @@ void CadastraInvestidor() {
     } while (!validarCPF(cpf) || verificarCadastro(cpf, "usuarios.txt"));
 
     printf("Digite a senha: ");
-    scanf("%s", senha);
+    if (scanf("%s", senha) != 1) {
+        printf("Erro na entrada da senha.\n");
+        fclose(arquivo);
+        return;
+    }
 
     fprintf(arquivo, "CPF: %s  SENHA: %s\n", cpf, senha);
     printf("Investidor cadastrado com sucesso!\n");
@@ -97,7 +115,10 @@ int login() {
 
     while (1) {
         printf("Digite o CPF (ou 0 para sair): ");
-        scanf("%11s", cpf);
+        if (scanf("%11s", cpf) != 1) {
+            printf("Erro na entrada do CPF.\n");
+            return 0;
+        }
 
         if (strcmp(cpf, "0") == 0) {
             printf("Saindo do login...\n");
@@ -115,7 +136,10 @@ int login() {
         }
 
         printf("Digite a senha: ");
-        scanf("%s", senha);
+        if (scanf("%s", senha) != 1) {
+            printf("Erro na entrada da senha.\n");
+            return 0;
+        }
 
         FILE *arquivo = fopen("administradores.txt", "r");
         if (arquivo == NULL) {
@@ -123,20 +147,27 @@ int login() {
             return 0;
         }
 
-        while (fscanf(arquivo, "%s %s", cpfArquivo, senhaArquivo) != EOF) {
+        // Agora, vamos ler corretamente o arquivo e comparar as informações.
+        int loginValido = 0;
+        while (fscanf(arquivo, "CPF: %s SENHA: %s", cpfArquivo, senhaArquivo) != EOF) {
             if (strcmp(cpf, cpfArquivo) == 0 && strcmp(senha, senhaArquivo) == 0) {
-                printf("Login bem-sucedido!\n");
-                fclose(arquivo);
-                return 1;
+                loginValido = 1;
+                break;  // Se o login for válido, sai do loop.
             }
         }
 
-        printf("CPF ou senha incorretos. Tente novamente ou digite 0 para sair.\n");
         fclose(arquivo);
+
+        if (loginValido) {
+            printf("Login bem-sucedido!\n");
+            return 1;  // Login bem-sucedido
+        } else {
+            printf("CPF ou senha incorretos. Tente novamente ou digite 0 para sair.\n");
+        }
     }
 }
 
-void menuAdministrador() {
+void MenuADM() {
     int opcao;
 
     while (1) {
@@ -144,46 +175,57 @@ void menuAdministrador() {
         printf("1. Cadastrar Investidor\n");
         printf("2. Sair\n");
         printf("Escolha uma opcao: ");
-        scanf("%d", &opcao);
+        if (scanf("%d", &opcao) != 1) {
+            printf("Erro na entrada da opcao.\n");
+            return;
+        }
 
         if (opcao == 1) {
             CadastraInvestidor();
         } else if (opcao == 2) {
-            printf("Saindo...\n");
-            break;
+            break;  // Sai do menu administrador
         } else {
             printf("Digite uma opcao valida.\n");
         }
     }
 }
 
-int menu() {
+int main() {
     int opcao;
+    int sair = 0; 
 
-    while (1) {
+    while (!sair) {
         printf("Bem-vindo a Central de Administradores do Grupo FEInance\n\n");
         printf("Escolha uma opcao:\n");
         printf("1. Fazer Login\n");
         printf("2. Cadastrar-se\n");
         printf("Digite a opcao (1 ou 2): ");
-        scanf("%d", &opcao);
+        if (scanf("%d", &opcao) != 1) {
+            printf("Erro na entrada da opcao.\n");
+            return 0;
+        }
 
         if (opcao == 1) {
             if (login()) {
-                printf("Acesso concedido!\n");
-                menuAdministrador();
+                MenuADM();  // Chama o menu do administrador
             } else {
                 printf("Falha no login.\n");
             }
-            break;
         } else if (opcao == 2) {
             cadastrarUsuario("administradores.txt");
-            menuAdministrador();
-            break;
+            MenuADM();  
         } else {
             printf("Digite uma opcao valida.\n");
+        }
+
+        
+        printf("Deseja sair? (1 - Sim, 0 - Não): ");
+        if (scanf("%d", &sair) != 1 || sair == 1) {
+            printf("Saindo do sistema...\n");
+            break;  // Sai do loop principal
         }
     }
 
     return 0;
 }
+
