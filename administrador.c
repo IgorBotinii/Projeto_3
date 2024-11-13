@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
-
+// Função para validar CPF (só números)
 int validarCPF(char cpf[]) {
     for (int i = 0; i < strlen(cpf); i++) {
         if (!isdigit(cpf[i])) {
@@ -13,34 +13,39 @@ int validarCPF(char cpf[]) {
     return 1;
 }
 
-
+// Função para verificar se o CPF já está cadastrado no arquivo
 int verificarCadastro(char cpf[], const char* arquivoNome) {
     FILE *arquivo;
     char cpfArquivo[12], senha[50];
 
     arquivo = fopen(arquivoNome, "r");
     if (arquivo == NULL) {
-        return 0;
+        return 0;  // Se o arquivo não puder ser aberto, assume que não há cadastro
     }
-
 
     while (fscanf(arquivo, "CPF: %s SENHA: %s", cpfArquivo, senha) != EOF) {
         if (strcmp(cpf, cpfArquivo) == 0) {
             fclose(arquivo);
-            return 1; // CPF encontrado
+            return 1; // CPF encontrado no arquivo
         }
     }
 
     fclose(arquivo);
-    return 0; // CPF não encontrado
+    return 0; // CPF não encontrado no arquivo
 }
 
+// Função para limpar o buffer de entrada
+void limparBuffer() {
+    char c;
+    while ((c = getchar()) != '\n' && c != EOF);  // Limpa o buffer até a nova linha ou fim de arquivo
+}
 
+// Função para cadastrar um novo usuário
 void cadastrarUsuario(const char* arquivoNome) {
     FILE *arquivo;
     char cpf[12], senha[50];
 
-    arquivo = fopen(arquivoNome, "a");
+    arquivo = fopen(arquivoNome, "a");  // Abrindo o arquivo no modo append (adicionar)
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
@@ -50,8 +55,10 @@ void cadastrarUsuario(const char* arquivoNome) {
         printf("Digite o CPF (somente numeros): ");
         if (scanf("%11s", cpf) != 1) {
             printf("Erro na entrada do CPF.\n");
+            fclose(arquivo);
             return;
         }
+        limparBuffer();  // Limpar o buffer após a entrada
 
         if (!validarCPF(cpf)) {
             printf("Apenas numeros sao permitidos no CPF.\n");
@@ -61,55 +68,21 @@ void cadastrarUsuario(const char* arquivoNome) {
     } while (!validarCPF(cpf) || verificarCadastro(cpf, arquivoNome));
 
     printf("Digite a senha: ");
-    if (scanf("%s", senha) != 1) {
+    if (scanf("%49s", senha) != 1) {  // Usando %49s para garantir que o buffer não seja excedido
         printf("Erro na entrada da senha.\n");
         fclose(arquivo);
         return;
     }
+    limparBuffer();  // Limpar o buffer após a entrada
 
+    // Escreve os dados no arquivo
     fprintf(arquivo, "CPF: %s SENHA: %s\n", cpf, senha);
     printf("Cadastro realizado com sucesso!\n");
 
     fclose(arquivo);
 }
 
-void CadastraInvestidor() {
-    FILE *arquivo;
-    char cpf[12], senha[50];
-
-    arquivo = fopen("usuarios.txt", "a");
-    if (arquivo == NULL) {
-        printf("Erro ao abrir o arquivo.\n");
-        return;
-    }
-
-    do {
-        printf("Digite o CPF (somente numeros): ");
-        if (scanf("%11s", cpf) != 1) {
-            printf("Erro na entrada do CPF.\n");
-            return;
-        }
-
-        if (!validarCPF(cpf)) {
-            printf("Apenas numeros sao permitidos no CPF.\n");
-        } else if (verificarCadastro(cpf, "usuarios.txt")) {
-            printf("CPF ja cadastrado. Tente outro CPF.\n");
-        }
-    } while (!validarCPF(cpf) || verificarCadastro(cpf, "usuarios.txt"));
-
-    printf("Digite a senha: ");
-    if (scanf("%s", senha) != 1) {
-        printf("Erro na entrada da senha.\n");
-        fclose(arquivo);
-        return;
-    }
-
-    fprintf(arquivo, "CPF: %s  SENHA: %s\n", cpf, senha);
-    printf("Investidor cadastrado com sucesso!\n");
-
-    fclose(arquivo);
-}
-
+// Função de login para verificar as credenciais de um administrador
 int login() {
     char cpf[12], senha[50], cpfArquivo[12], senhaArquivo[50];
 
@@ -119,6 +92,7 @@ int login() {
             printf("Erro na entrada do CPF.\n");
             return 0;
         }
+        limparBuffer();  // Limpar o buffer após a entrada
 
         if (strcmp(cpf, "0") == 0) {
             printf("Saindo do login...\n");
@@ -136,10 +110,11 @@ int login() {
         }
 
         printf("Digite a senha: ");
-        if (scanf("%s", senha) != 1) {
+        if (scanf("%49s", senha) != 1) {
             printf("Erro na entrada da senha.\n");
             return 0;
         }
+        limparBuffer();  // Limpar o buffer após a entrada
 
         FILE *arquivo = fopen("administradores.txt", "r");
         if (arquivo == NULL) {
@@ -147,12 +122,11 @@ int login() {
             return 0;
         }
 
-        // Agora, vamos ler corretamente o arquivo e comparar as informações.
         int loginValido = 0;
         while (fscanf(arquivo, "CPF: %s SENHA: %s", cpfArquivo, senhaArquivo) != EOF) {
             if (strcmp(cpf, cpfArquivo) == 0 && strcmp(senha, senhaArquivo) == 0) {
                 loginValido = 1;
-                break;  // Se o login for válido, sai do loop.
+                break;
             }
         }
 
@@ -160,13 +134,14 @@ int login() {
 
         if (loginValido) {
             printf("Login bem-sucedido!\n");
-            return 1;  // Login bem-sucedido
+            return 1;
         } else {
             printf("CPF ou senha incorretos. Tente novamente ou digite 0 para sair.\n");
         }
     }
 }
 
+// Menu do Administrador
 void MenuADM() {
     int opcao;
 
@@ -179,9 +154,10 @@ void MenuADM() {
             printf("Erro na entrada da opcao.\n");
             return;
         }
+        limparBuffer();  // Limpar o buffer após a entrada
 
         if (opcao == 1) {
-            CadastraInvestidor();
+            cadastrarUsuario("usuarios.txt");  // Chama a função de cadastro
         } else if (opcao == 2) {
             break;  // Sai do menu administrador
         } else {
@@ -190,9 +166,10 @@ void MenuADM() {
     }
 }
 
+// Função principal
 int main() {
     int opcao;
-    int sair = 0; 
+    int sair = 0;
 
     while (!sair) {
         printf("Bem-vindo a Central de Administradores do Grupo FEInance\n\n");
@@ -204,6 +181,7 @@ int main() {
             printf("Erro na entrada da opcao.\n");
             return 0;
         }
+        limparBuffer();  // Limpar o buffer após a entrada
 
         if (opcao == 1) {
             if (login()) {
@@ -218,14 +196,13 @@ int main() {
             printf("Digite uma opcao valida.\n");
         }
 
-        
         printf("Deseja sair? (1 - Sim, 0 - Não): ");
         if (scanf("%d", &sair) != 1 || sair == 1) {
             printf("Saindo do sistema...\n");
-            break;  // Sai do loop principal
+            break;
         }
+        limparBuffer();  // Limpar o buffer após a entrada
     }
 
     return 0;
 }
-
