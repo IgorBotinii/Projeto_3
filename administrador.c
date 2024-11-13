@@ -67,6 +67,7 @@ void cadastrarUsuario(const char* arquivoNome) {
         }
     } while (!validarCPF(cpf) || verificarCadastro(cpf, arquivoNome));
 
+    // Solicita a senha após garantir que o CPF está correto
     printf("Digite a senha: ");
     if (scanf("%49s", senha) != 1) {  // Usando %49s para garantir que o buffer não seja excedido
         printf("Erro na entrada da senha.\n");
