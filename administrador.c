@@ -3,6 +3,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#define TAM_LINHA 256
+#define MAX_USUARIOS 100
+
 // Função para validar CPF (só números)
 int validarCPF(char cpf[]) {
     for (int i = 0; i < strlen(cpf); i++) {
@@ -39,6 +42,97 @@ void limparBuffer() {
     char c;
     while ((c = getchar()) != '\n' && c != EOF);
 }
+
+// Função para excluir um investidor
+void excluirInvestidor(const char *arquivoNome) {
+    char cpf[12], cpfArquivo[12], senha[50];
+    int encontrado = 0;
+
+    printf("Digite o CPF do investidor a ser excluido: ");
+    if (scanf("%11s", cpf) != 1) {
+        printf("Erro na entrada do CPF.\n");
+        return;
+    }
+    limparBuffer();
+
+    if (!validarCPF(cpf)) {
+        printf("CPF invalido. Apenas numeros sao permitidos.\n");
+        return;
+    }
+
+    FILE *arquivoOriginal = fopen(arquivoNome, "r+");
+    if (arquivoOriginal == NULL) {
+        printf("Erro ao abrir o arquivo de usuarios.\n");
+        return;
+    }
+
+    char linha[TAM_LINHA];
+    char usuarios_com_cpf[MAX_USUARIOS][TAM_LINHA];
+    char usuarios_sem_cpf[MAX_USUARIOS][TAM_LINHA];
+    int total_usuarios_com_cpf = 0;
+    int total_usuarios_sem_cpf = 0;
+
+    // Lê todos os usuários e separa em duas listas
+    while (fgets(linha, sizeof(linha), arquivoOriginal) != NULL) {
+        if (strstr(linha, cpf) != NULL) {
+            // Encontrou o CPF, substituímos a linha
+            if (total_usuarios_com_cpf < MAX_USUARIOS) {
+                snprintf(usuarios_com_cpf[total_usuarios_com_cpf], TAM_LINHA, "CPF: EXCLUIDO SENHA: EXCLUIDO\n");
+                total_usuarios_com_cpf++;
+            }
+        } else {
+            if (total_usuarios_sem_cpf < MAX_USUARIOS) {
+                strncpy(usuarios_sem_cpf[total_usuarios_sem_cpf], linha, TAM_LINHA - 1);
+                usuarios_sem_cpf[total_usuarios_sem_cpf][TAM_LINHA - 1] = '\0'; // Garantir que a string seja nula-terminada
+                total_usuarios_sem_cpf++;
+            }
+        }
+    }
+    fclose(arquivoOriginal);
+
+    // Se não houver usuários encontrados para o CPF
+    if (total_usuarios_com_cpf == 0) {
+        printf("Nenhum investidor encontrado com o CPF: %s\n", cpf);
+        return;
+    }
+
+    // Reescreve o arquivo sem o usuário excluído
+    FILE *arquivoSaida = fopen(arquivoNome, "w");
+    if (arquivoSaida == NULL) {
+        printf("Erro ao abrir o arquivo para escrita.\n");
+        return;
+    }
+
+    // Reescreve todos os usuários sem o CPF excluído
+    for (int i = 0; i < total_usuarios_sem_cpf; i++) {
+        fputs(usuarios_sem_cpf[i], arquivoSaida);
+    }
+
+    // Escreve os usuários com o CPF substituído
+    for (int i = 0; i < total_usuarios_com_cpf; i++) {
+        fputs(usuarios_com_cpf[i], arquivoSaida);
+    }
+
+    fclose(arquivoSaida);
+
+    // Registrar no historico.txt
+    FILE *historicoArquivo = fopen("historico.txt", "a");
+    if (historicoArquivo == NULL) {
+        printf("Erro ao abrir o arquivo de historico para escrita! Um novo será criado.\n");
+        historicoArquivo = fopen("historico.txt", "w");
+        if (historicoArquivo == NULL) {
+            printf("Não foi possível criar o arquivo de historico!\n");
+            return;
+        }
+    }
+
+    // Registra a exclusão no histórico
+    fprintf(historicoArquivo, "CPF: %s\tEXCLUIDO: %s\n", cpf, cpf); // Registrando o CPF que foi excluído
+    fclose(historicoArquivo);
+
+    printf("Investidor com CPF %s excluído com sucesso!\n", cpf);
+}
+
 
 // Função para cadastrar um novo usuário
 void cadastrarUsuario(const char* arquivoNome) {
@@ -146,7 +240,8 @@ void MenuADM() {
     while (1) {
         printf("\nMenu de Administrador:\n");
         printf("1. Cadastrar Investidor\n");
-        printf("2. Sair\n");
+        printf("2. Excluir Investidor\n");
+        printf("3. Sair\n");
         printf("Escolha uma opcao: ");
         if (scanf("%d", &opcao) != 1) {
             printf("Erro na entrada da opcao.\n");
@@ -157,6 +252,8 @@ void MenuADM() {
         if (opcao == 1) {
             cadastrarUsuario("usuarios.txt");
         } else if (opcao == 2) {
+            excluirInvestidor("usuarios.txt");
+        } else if (opcao == 3) {
             break;
         } else {
             printf("Digite uma opcao valida.\n");
@@ -189,7 +286,6 @@ int main() {
             }
         } else if (opcao == 2) {
             cadastrarUsuario("administradores.txt");
-            MenuADM();
         } else {
             printf("Digite uma opcao valida.\n");
         }
