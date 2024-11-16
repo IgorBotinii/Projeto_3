@@ -20,7 +20,7 @@ int verificarCadastro(char cpf[], const char* arquivoNome) {
 
     arquivo = fopen(arquivoNome, "r");
     if (arquivo == NULL) {
-        return 0;  // Se o arquivo não puder ser aberto, assume que não há cadastro
+        return 0; // Arquivo não encontrado
     }
 
     while (fscanf(arquivo, "CPF: %s SENHA: %s", cpfArquivo, senha) != EOF) {
@@ -37,7 +37,7 @@ int verificarCadastro(char cpf[], const char* arquivoNome) {
 // Função para limpar o buffer de entrada
 void limparBuffer() {
     char c;
-    while ((c = getchar()) != '\n' && c != EOF);  // Limpa o buffer até a nova linha ou fim de arquivo
+    while ((c = getchar()) != '\n' && c != EOF);
 }
 
 // Função para cadastrar um novo usuário
@@ -45,7 +45,7 @@ void cadastrarUsuario(const char* arquivoNome) {
     FILE *arquivo;
     char cpf[12], senha[50];
 
-    arquivo = fopen(arquivoNome, "a");  // Abrindo o arquivo no modo append (adicionar)
+    arquivo = fopen(arquivoNome, "a");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
@@ -58,7 +58,7 @@ void cadastrarUsuario(const char* arquivoNome) {
             fclose(arquivo);
             return;
         }
-        limparBuffer();  // Limpar o buffer após a entrada
+        limparBuffer();
 
         if (!validarCPF(cpf)) {
             printf("Apenas numeros sao permitidos no CPF.\n");
@@ -67,19 +67,16 @@ void cadastrarUsuario(const char* arquivoNome) {
         }
     } while (!validarCPF(cpf) || verificarCadastro(cpf, arquivoNome));
 
-    // Solicita a senha após garantir que o CPF está correto
     printf("Digite a senha: ");
-    if (scanf("%49s", senha) != 1) {  // Usando %49s para garantir que o buffer não seja excedido
+    if (scanf("%49s", senha) != 1) {
         printf("Erro na entrada da senha.\n");
         fclose(arquivo);
         return;
     }
-    limparBuffer();  // Limpar o buffer após a entrada
+    limparBuffer();
 
-    // Escreve os dados no arquivo
     fprintf(arquivo, "CPF: %s SENHA: %s\n", cpf, senha);
     printf("Cadastro realizado com sucesso!\n");
-
     fclose(arquivo);
 }
 
@@ -93,7 +90,7 @@ int login() {
             printf("Erro na entrada do CPF.\n");
             return 0;
         }
-        limparBuffer();  // Limpar o buffer após a entrada
+        limparBuffer();
 
         if (strcmp(cpf, "0") == 0) {
             printf("Saindo do login...\n");
@@ -115,7 +112,7 @@ int login() {
             printf("Erro na entrada da senha.\n");
             return 0;
         }
-        limparBuffer();  // Limpar o buffer após a entrada
+        limparBuffer();
 
         FILE *arquivo = fopen("administradores.txt", "r");
         if (arquivo == NULL) {
@@ -155,12 +152,12 @@ void MenuADM() {
             printf("Erro na entrada da opcao.\n");
             return;
         }
-        limparBuffer();  // Limpar o buffer após a entrada
+        limparBuffer();
 
         if (opcao == 1) {
-            cadastrarUsuario("usuarios.txt");  // Chama a função de cadastro
+            cadastrarUsuario("usuarios.txt");
         } else if (opcao == 2) {
-            break;  // Sai do menu administrador
+            break;
         } else {
             printf("Digite uma opcao valida.\n");
         }
@@ -182,17 +179,17 @@ int main() {
             printf("Erro na entrada da opcao.\n");
             return 0;
         }
-        limparBuffer();  // Limpar o buffer após a entrada
+        limparBuffer();
 
         if (opcao == 1) {
             if (login()) {
-                MenuADM();  // Chama o menu do administrador
+                MenuADM();
             } else {
                 printf("Falha no login.\n");
             }
         } else if (opcao == 2) {
             cadastrarUsuario("administradores.txt");
-            MenuADM();  
+            MenuADM();
         } else {
             printf("Digite uma opcao valida.\n");
         }
@@ -202,7 +199,7 @@ int main() {
             printf("Saindo do sistema...\n");
             break;
         }
-        limparBuffer();  // Limpar o buffer após a entrada
+        limparBuffer();
     }
 
     return 0;
