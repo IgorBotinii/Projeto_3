@@ -870,7 +870,7 @@ void menuPrincipal() {
 }
 
 // Função principal
-int main() {
+int menu() {
   char cpf[20];
   char senha[50];
   int opcao, cadastrosExistentes;
