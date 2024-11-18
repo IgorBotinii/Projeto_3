@@ -5,6 +5,15 @@
 
 #define TAM_LINHA 256
 #define MAX_USUARIOS 100
+#define MAX_TRANSACOES 100
+
+// Cotações das criptomoedas
+float cotacao_bitcoin = 250000.0; // Cotação para Bitcoin
+float cotacao_ethereum = 15000.0; // Cotação para Ethereum
+float cotacao_ripple = 5.0;       // Cotação para Ripple
+
+// Função para gerar uma variação aleatória de -5% a +5%
+float gerarVariacao() { return (float)(rand() % 11 - 5) / 100; }
 
 // Função para validar CPF (só números)
 int validarCPF(char cpf[]) {
@@ -323,6 +332,127 @@ void consultar_saldo_investidor() {
     }
 }
 
+// Função para o extrato ter no máximo 100 linhas
+void manterUltimasTransacoes() {
+  FILE *extratoFile = fopen("extrato.txt", "r");
+  if (extratoFile == NULL) {
+    printf("Erro ao abrir o arquivo de extrato.\n");
+    return;
+  }
+
+  // Contar o número de linhas no arquivo
+  char line[TAM_LINHA];
+  int numLinhas = 0;
+
+  // Contar o número de linhas no arquivo
+  while (fgets(line, sizeof(line), extratoFile) != NULL) {
+    numLinhas++;
+  }
+  fclose(extratoFile);
+
+  // Se houver mais de 100 linhas, remover as linhas excedentes
+  if (numLinhas > MAX_TRANSACOES) {
+    extratoFile = fopen("extrato.txt", "r");
+    FILE *tempFile = fopen("extrato_temp.txt", "w");
+
+    if (tempFile == NULL) {
+      printf("Erro ao abrir o arquivo temporario.\n");
+      fclose(extratoFile);
+      return;
+    }
+
+    // Ignorar as primeiras (numLinhas - 100) linhas
+    int linhasIgnoradas = numLinhas - MAX_TRANSACOES;
+    int linhaAtual = 0;
+
+    // Copiar as últimas 100 linhas para o arquivo temporário
+    while (fgets(line, sizeof(line), extratoFile) != NULL) {
+      if (linhaAtual >= linhasIgnoradas) {
+        fputs(line, tempFile);
+      }
+      linhaAtual++;
+    }
+
+    fclose(extratoFile);
+    fclose(tempFile);
+
+    // Substituir o arquivo original pelo temporário
+    remove("extrato.txt");
+    rename("extrato_temp.txt", "extrato.txt");
+  }
+}
+
+// Função para consultar o extrato
+void consultarExtrato() {
+  char cpf[20]; // CPF de até 20 caracteres
+  char line[TAM_LINHA];
+  int cpfEncontrado = 0;
+  char cpfFormatado[20]; // Para armazenar "CPF: X"
+
+  // Solicita o CPF do usuário
+  printf("Digite o CPF do investidor: ");
+  scanf("%19s", cpf); // Limita a entrada para até 19 caracteres
+  printf("--------------------------------\n");
+
+  // Formata o CPF para a busca, no formato "CPF: %s"
+  snprintf(cpfFormatado, sizeof(cpfFormatado), "CPF: %s", cpf);
+
+  // Verifica se o CPF existe no arquivo usuarios.txt
+  FILE *usuariosFile = fopen("usuarios.txt", "r");
+  if (usuariosFile == NULL) {
+    printf("Erro ao abrir o arquivo de usuarios.\n");
+    return;
+  }
+
+  while (fgets(line, sizeof(line), usuariosFile) != NULL) {
+    if (strncmp(line, cpfFormatado, strlen(cpfFormatado)) == 0) {
+      cpfEncontrado = 1;
+      break;
+    }
+  }
+  fclose(usuariosFile);
+
+  if (!cpfEncontrado) {
+    printf("CPF não encontrado no arquivo de usuarios.\n");
+    return;
+  }
+
+  // Exibe o extrato para o CPF encontrado
+  FILE *extratoFile = fopen("extrato.txt", "r");
+  if (extratoFile == NULL) {
+    printf("Erro ao abrir o arquivo de extrato.\n");
+    return;
+  }
+
+  printf("Extrato para o CPF %s:\n", cpf);
+  while (fgets(line, sizeof(line), extratoFile) != NULL) {
+
+    // Verifica se a linha começa com o CPF completo no formato "CPF: X"
+    if (strncmp(line, cpfFormatado, strlen(cpfFormatado)) == 0) {
+      printf("%s", line); // Exibe a linha com a transação
+    }
+  }
+  fclose(extratoFile);
+
+  // Depois de consultar o extrato, garante que o arquivo tenha no máximo 100
+  // transações
+  manterUltimasTransacoes();
+}
+
+// Função para atualizar cotações
+void atualizarCotacoes() {
+  cotacao_bitcoin += cotacao_bitcoin * gerarVariacao();
+  cotacao_ethereum += cotacao_ethereum * gerarVariacao();
+  cotacao_ripple += cotacao_ripple * gerarVariacao();
+
+  printf("Cotacoes atualizadas:\n");
+  printf("Bitcoin: R$%.2f\n", cotacao_bitcoin);
+  printf("Ethereum: R$%.2f\n", cotacao_ethereum);
+  printf("Ripple: R$%.2f\n", cotacao_ripple);
+
+  return;
+}
+
 // Função de login para verificar as credenciais de um administrador
 int login() {
     char cpf[12], senha[50], cpfArquivo[12], senhaArquivo[50];
@@ -414,9 +544,9 @@ void MenuADM() {
         } else if (opcao == 5) {
             consultar_saldo_investidor("usuarios.txt");
         } else if (opcao == 6) {
-            //funcao para consultar extrato
+            consultarExtrato();
         } else if (opcao == 7) {
-            //funcao para atualizar cotacao
+            atualizarCotacoes();
         } else if (opcao == 8) {
             break;
         } else {
