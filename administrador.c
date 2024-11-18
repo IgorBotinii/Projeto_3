@@ -413,7 +413,7 @@ void consultarExtrato() {
   fclose(usuariosFile);
 
   if (!cpfEncontrado) {
-    printf("CPF não encontrado no arquivo de usuarios.\n");
+    printf("CPF não encontrado.\n");
     return;
   }
 
