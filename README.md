@@ -46,12 +46,16 @@ que o seu gerente cadastrou e aplicou as devidas cotações.
    ```bash
    gcc administrador.c 
    ```
-3. Selecionar 2 para se cadastrar    
+3. Compile o código usando o comando abaixo:
+   ```bash
+   ./a.out
+   ```
+4. Selecionar 2 para se cadastrar    
     ```bash
     "Digite seu CPF(SOMENTE NUMERO): "
     "Digite sua senha: "
    ```
-4. Ao acessar o sistema, ele da as seguintes opções
+5. Ao acessar o sistema, ele da as seguintes opções
     ```bash
     Menu de Administrador:
     1. Cadastrar Investidor
@@ -64,7 +68,7 @@ que o seu gerente cadastrou e aplicou as devidas cotações.
     8. Sair
     Escolha uma opcao:
    ```   
-5. Seleciona a sua opção desejada e siga o fluxo de uso
+6. Seleciona a sua opção desejada e siga o fluxo de uso
 
 ## ⌨️ **Como Usar o Sistema - INVESTIDOR**
 
