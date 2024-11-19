@@ -81,8 +81,6 @@ que o seu gerente cadastrou e aplicou as devidas cotações.
    ```bash
    gcc Main.c 
    ```
-3. Selecionar 2 para se cadastrar    
-
 4. Desposite um valor, utilizando o comando:
    ```bash
    3 - Depositar Valor
