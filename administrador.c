@@ -176,7 +176,6 @@ void cadastrarUsuario(const char *arquivoNome) {
   fclose(arquivo);
 }
 
-// Função para garantir a entrada de um número float válido
 float solicitar_float(const char *mensagem) {
   float valor;
   char buffer[50];
