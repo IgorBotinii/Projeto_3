@@ -2,10 +2,13 @@
 
 ## 👨‍💻 **Programadores**
 **Nome:**  Igor Botini da Silva **RA:** 22.124.023-7 <br>
-**Nome:**  Yllan Leite da Graça Souza **RA:** 22.124.050-0 <br>
 **Nome:**  Henrique Gaiardoni Sant Anna **RA:** 22.124.009-6 
 ## 📝 **Sobre o Projeto** 
-Projeto se trata de um sistema de compra e venda de criptomoeda, gerenciado totalmente no terminal, utilizando a liguagem de programação: **C**
+Projeto se trata de um sistema de compra e venda de criptomoeda, gerenciado totalmente no terminal, utilizando a liguagem de programação: **C**<br>
+Os sistemas (administrador.c e Main.c) diponiveis possuem as seguintes funções: <br><br>
+    **administrador.c** = Cuida de toda a parte de gerenciamento de cadastro, exclusão de cadastro, cadastro de criptomoedas, mudança de valor entre outros. <br><br>
+    **Main.c** = Cuida de toda a parte de investimentos, ou seja, o usuario final, sendo possivel comprar moedas 
+que o seu gerente cadastrou e aplicou as devidas cotações.
 ## 🪄 **Funcionalidade do Sistema** 
 
 - **Cadastrar Usuario:** Possibilidade de cadastrar até 10 usuarios no sistema
@@ -33,19 +36,46 @@ Projeto se trata de um sistema de compra e venda de criptomoeda, gerenciado tota
 
     🔍 **Código do Comando:**  `7. Atualizar Cotações`
      - **Deslogar da Conta:** Atualizar Cotações 
-## 🪙 **Moedas Disponiveis**
 
-    💲 BITCOIN (BTC) 
-    💲 ETHEREUM (ETH) 
-    💲 RIPPLE (XRP) 
 
-## ⌨️ **Como Usar o Sistema**
+## ⌨️ **Como Usar o Sistema - ADM**
 
 1. Abra o terminal e navegue até o diretório onde o arquivo `main.c` está localizado.
 
 2. Compile o código usando o comando abaixo:
    ```bash
-   gcc main.c 
+   gcc administrador.c 
+   ```
+3. Selecionar 2 para se cadastrar    
+    ```bash
+    "Digite seu CPF(SOMENTE NUMERO): "
+    "Digite sua senha: "
+   ```
+4. Ao acessar o sistema, ele da as seguintes opções
+    ```bash
+    Menu de Administrador:
+    1. Cadastrar Investidor
+    2. Excluir Investidor
+    3. Cadastrar criptomoeda
+    4. Excluir criptomoeda
+    5. Consultar saldo
+    6. Consultar extrato
+    7. Atualizar cotacao
+    8. Sair
+    Escolha uma opcao:
+   ```   
+5. Seleciona a sua opção desejada e siga o fluxo de uso
+
+## ⌨️ **Como Usar o Sistema - INVESTIDOR**
+
+
+
+
+1. Abra o terminal e navegue até o diretório onde o arquivo `main.c` está localizado.
+
+2. Compile o código usando o comando abaixo:
+   ```bash
+   gcc Main.c 
    ```
 3. Selecionar 2 para se cadastrar    
 
