@@ -5,6 +5,15 @@
 
 #define TAM_LINHA 256
 #define MAX_USUARIOS 100
+#define MAX_TRANSACOES 100
+
+// Cotações das criptomoedas
+float cotacao_bitcoin = 250000.0; // Cotação para Bitcoin
+float cotacao_ethereum = 15000.0; // Cotação para Ethereum
+float cotacao_ripple = 5.0;       // Cotação para Ripple
+
+// Função para gerar uma variação aleatória de -5% a +5%
+float gerarVariacao() { return (float)(rand() % 11 - 5) / 100; }
 
 // Função para validar CPF (só números)
 int validarCPF(char cpf[]) {
@@ -133,7 +142,6 @@ void excluirInvestidor(const char *arquivoNome) {
     printf("Investidor com CPF %s excluído com sucesso!\n", cpf);
 }
 
-
 // Função para cadastrar um novo usuário
 void cadastrarUsuario(const char* arquivoNome) {
     FILE *arquivo;
@@ -169,9 +177,280 @@ void cadastrarUsuario(const char* arquivoNome) {
     }
     limparBuffer();
 
-    fprintf(arquivo, "CPF: %s SENHA: %s\n", cpf, senha);
+    fprintf(arquivo, "CPF: %s SENHA: %s SALDO: 0.00\n", cpf, senha);
     printf("Cadastro realizado com sucesso!\n");
     fclose(arquivo);
+}
+
+// Função para garantir a entrada de um número float válido
+float solicitar_float(const char *mensagem) {
+    float valor;
+    char buffer[50];
+    int valido;
+
+    do {
+        printf("%s", mensagem);
+        if (fgets(buffer, sizeof(buffer), stdin)) {
+            // Tenta converter o valor lido para float
+            valido = sscanf(buffer, "%f", &valor);
+            if (valido == 1) {
+                return valor;
+            } else {
+                printf("Digite apenas numeros.\n");
+            }
+        } else {
+            printf("Erro na leitura da entrada. Tente novamente.\n");
+        }
+    } while (1);
+}
+
+//Funçao para cadastrar criptomoeda
+void cadastrar_criptomoeda() {
+    char nome[50];
+    float cotacao_inicial, taxa_compra, taxa_venda;
+
+    // Solicita os dados da criptomoeda
+    printf("Digite o nome da criptomoeda: ");
+    scanf("%49s", nome); // Lê o nome da criptomoeda
+    getchar(); // Limpa o buffer de entrada
+
+    cotacao_inicial = solicitar_float("Digite a cotação inicial da criptomoeda: ");
+    taxa_compra = solicitar_float("Digite a taxa de compra (em %): ");
+    taxa_venda = solicitar_float("Digite a taxa de venda (em %): ");
+
+    // Abre o arquivo para escrita em modo de append
+    FILE *arquivo = fopen("criptomoedas.txt", "a");
+    if (arquivo == NULL) {
+        perror("Erro ao abrir o arquivo");
+        exit(1);
+    }
+
+    // Escreve os dados no arquivo
+    if (fprintf(arquivo, "NOME: %s | COTAÇÃO: %.2f | TAXA COMPRA: %.2f | TAXA VENDA: %.2f\n",
+                nome, cotacao_inicial, taxa_compra, taxa_venda) < 0) {
+        perror("Erro ao escrever no arquivo");
+        fclose(arquivo);
+        exit(1);
+    }
+
+    // Fecha o arquivo
+    fclose(arquivo);
+
+    printf("Criptomoeda cadastrada com sucesso!\n");
+}
+
+// Função para excluir uma criptomoeda
+void excluir_criptomoeda() {
+    char nome[50], linha[200], nome_arquivo_temp[] = "temp.txt";
+    int encontrada = 0;
+
+    printf("Digite o nome da criptomoeda que deseja excluir: ");
+    scanf("%49s", nome);
+    getchar(); // Limpa o buffer de entrada
+
+    FILE *arquivo = fopen("criptomoedas.txt", "r");
+    if (arquivo == NULL) {
+        perror("Erro ao abrir o arquivo");
+        exit(1);
+    }
+
+    FILE *temp = fopen(nome_arquivo_temp, "w");
+    if (temp == NULL) {
+        perror("Erro ao criar arquivo temporário");
+        fclose(arquivo);
+        exit(1);
+    }
+
+    // Percorre o arquivo linha por linha
+    while (fgets(linha, sizeof(linha), arquivo)) {
+        // Verifica se a linha contém o nome da criptomoeda
+        if (strstr(linha, nome) != NULL) {
+            printf("\nCriptomoeda encontrada:\n%s", linha);
+            printf("Deseja realmente excluir esta criptomoeda? (s/n): ");
+            char confirmacao = getchar();
+            getchar(); // Limpa o buffer de entrada
+
+            if (confirmacao == 's' || confirmacao == 'S') {
+                printf("Criptomoeda excluída com sucesso!\n");
+                encontrada = 1;
+                continue; // Ignora a escrita dessa linha no arquivo temporário
+            } else {
+                printf("Exclusão cancelada.\n");
+            }
+        }
+
+        // Copia a linha para o arquivo temporário
+        fprintf(temp, "%s", linha);
+    }
+
+    fclose(arquivo);
+    fclose(temp);
+
+    if (encontrada) {
+        // Substitui o arquivo original pelo temporário
+        if (remove("criptomoedas.txt") != 0 || rename(nome_arquivo_temp, "criptomoedas.txt") != 0) {
+            perror("Erro ao atualizar o arquivo");
+            exit(1);
+        }
+    } else {
+        printf("Criptomoeda não encontrada no arquivo.\n");
+        remove(nome_arquivo_temp); // Remove o arquivo temporário, pois não foi usado
+    }
+}
+
+// Função para consultar saldo de um investidor pelo CPF
+void consultar_saldo_investidor() {
+    char cpf[15]; // CPF informado pelo usuário
+    char linha[200]; // Buffer para leitura de cada linha do arquivo
+    int encontrado = 0;
+
+    // Solicita o CPF do investidor
+    printf("Digite o CPF do investidor (somente números): ");
+    scanf("%14s", cpf); // Lê o CPF informado
+    getchar(); // Limpa o buffer de entrada
+
+    FILE *arquivo = fopen("usuarios.txt", "r");
+    if (arquivo == NULL) {
+        perror("Erro ao abrir o arquivo usuarios.txt");
+        exit(1);
+    }
+
+    // Percorre o arquivo linha por linha
+    while (fgets(linha, sizeof(linha), arquivo)) {
+        // Verifica se a linha contém o CPF informado
+        if (strstr(linha, cpf) != NULL) {
+            printf("\nInvestidor encontrado:\n%s", linha);
+            encontrado = 1;
+            break; // Sai do loop após encontrar o CPF
+        }
+    }
+
+    fclose(arquivo);
+
+    if (!encontrado) {
+        printf("\nCPF nao encontrado no sistema.\n");
+    }
+}
+
+// Função para o extrato ter no máximo 100 linhas
+void manterUltimasTransacoes() {
+  FILE *extratoFile = fopen("extrato.txt", "r");
+  if (extratoFile == NULL) {
+    printf("Erro ao abrir o arquivo de extrato.\n");
+    return;
+  }
+
+  // Contar o número de linhas no arquivo
+  char line[TAM_LINHA];
+  int numLinhas = 0;
+
+  // Contar o número de linhas no arquivo
+  while (fgets(line, sizeof(line), extratoFile) != NULL) {
+    numLinhas++;
+  }
+  fclose(extratoFile);
+
+  // Se houver mais de 100 linhas, remover as linhas excedentes
+  if (numLinhas > MAX_TRANSACOES) {
+    extratoFile = fopen("extrato.txt", "r");
+    FILE *tempFile = fopen("extrato_temp.txt", "w");
+
+    if (tempFile == NULL) {
+      printf("Erro ao abrir o arquivo temporario.\n");
+      fclose(extratoFile);
+      return;
+    }
+
+    // Ignorar as primeiras (numLinhas - 100) linhas
+    int linhasIgnoradas = numLinhas - MAX_TRANSACOES;
+    int linhaAtual = 0;
+
+    // Copiar as últimas 100 linhas para o arquivo temporário
+    while (fgets(line, sizeof(line), extratoFile) != NULL) {
+      if (linhaAtual >= linhasIgnoradas) {
+        fputs(line, tempFile);
+      }
+      linhaAtual++;
+    }
+
+    fclose(extratoFile);
+    fclose(tempFile);
+
+    // Substituir o arquivo original pelo temporário
+    remove("extrato.txt");
+    rename("extrato_temp.txt", "extrato.txt");
+  }
+}
+
+// Função para consultar o extrato
+void consultarExtrato() {
+  char cpf[20]; // CPF de até 20 caracteres
+  char line[TAM_LINHA];
+  int cpfEncontrado = 0;
+  char cpfFormatado[20]; // Para armazenar "CPF: X"
+
+  // Solicita o CPF do usuário
+  printf("Digite o CPF do investidor: ");
+  scanf("%19s", cpf); // Limita a entrada para até 19 caracteres
+  printf("--------------------------------\n");
+
+  // Formata o CPF para a busca, no formato "CPF: %s"
+  snprintf(cpfFormatado, sizeof(cpfFormatado), "CPF: %s", cpf);
+
+  // Verifica se o CPF existe no arquivo usuarios.txt
+  FILE *usuariosFile = fopen("usuarios.txt", "r");
+  if (usuariosFile == NULL) {
+    printf("Erro ao abrir o arquivo de usuarios.\n");
+    return;
+  }
+
+  while (fgets(line, sizeof(line), usuariosFile) != NULL) {
+    if (strncmp(line, cpfFormatado, strlen(cpfFormatado)) == 0) {
+      cpfEncontrado = 1;
+      break;
+    }
+  }
+  fclose(usuariosFile);
+
+  if (!cpfEncontrado) {
+    printf("CPF não encontrado.\n");
+    return;
+  }
+
+  // Exibe o extrato para o CPF encontrado
+  FILE *extratoFile = fopen("extrato.txt", "r");
+  if (extratoFile == NULL) {
+    printf("Erro ao abrir o arquivo de extrato.\n");
+    return;
+  }
+
+  printf("Extrato para o CPF %s:\n", cpf);
+  while (fgets(line, sizeof(line), extratoFile) != NULL) {
+
+    // Verifica se a linha começa com o CPF completo no formato "CPF: X"
+    if (strncmp(line, cpfFormatado, strlen(cpfFormatado)) == 0) {
+      printf("%s", line); // Exibe a linha com a transação
+    }
+  }
+  fclose(extratoFile);
+
+  // Depois de consultar o extrato, garante que o arquivo tenha no máximo 100
+  // transações
+  manterUltimasTransacoes();
+}
+
+// Função para atualizar cotações
+void atualizarCotacoes() {
+  cotacao_bitcoin += cotacao_bitcoin * gerarVariacao();
+  cotacao_ethereum += cotacao_ethereum * gerarVariacao();
+  cotacao_ripple += cotacao_ripple * gerarVariacao();
+
+  printf("Cotacoes atualizadas:\n");
+  printf("Bitcoin: R$%.2f\n", cotacao_bitcoin);
+  printf("Ethereum: R$%.2f\n", cotacao_ethereum);
+  printf("Ripple: R$%.2f\n", cotacao_ripple);
+
+  return;
 }
 
 // Função de login para verificar as credenciais de um administrador
@@ -241,7 +520,12 @@ void MenuADM() {
         printf("\nMenu de Administrador:\n");
         printf("1. Cadastrar Investidor\n");
         printf("2. Excluir Investidor\n");
-        printf("3. Sair\n");
+        printf("3. Cadastrar criptomoeda\n");
+        printf("4. Excluir criptomoeda\n");
+        printf("5. Consultar saldo\n");
+        printf("6. Consultar extrato\n");
+        printf("7. Atualizar cotacao\n");
+        printf("8. Sair\n");
         printf("Escolha uma opcao: ");
         if (scanf("%d", &opcao) != 1) {
             printf("Erro na entrada da opcao.\n");
@@ -254,6 +538,16 @@ void MenuADM() {
         } else if (opcao == 2) {
             excluirInvestidor("usuarios.txt");
         } else if (opcao == 3) {
+            cadastrar_criptomoeda("criptomoedas.txt");
+        } else if (opcao == 4) {
+            excluir_criptomoeda("criptomoedas.txt");
+        } else if (opcao == 5) {
+            consultar_saldo_investidor("usuarios.txt");
+        } else if (opcao == 6) {
+            consultarExtrato();
+        } else if (opcao == 7) {
+            atualizarCotacoes();
+        } else if (opcao == 8) {
             break;
         } else {
             printf("Digite uma opcao valida.\n");
