@@ -7,7 +7,6 @@
 #define MAX_USUARIOS 100
 #define MAX_TRANSACOES 100
 
-// Cotações das criptomoedas
 float cotacao_bitcoin = 250000.0; // Cotação para Bitcoin
 float cotacao_ethereum = 15000.0; // Cotação para Ethereum
 float cotacao_ripple = 5.0;       // Cotação para Ripple
